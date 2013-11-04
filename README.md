@@ -102,3 +102,7 @@ The GMap have some methods to create java object easily, such as:
 * `GMap.create_latlng(lat, lng)` - Create a [LatLng](https://developers.google.com/maps/documentation/android/reference/com/google/android/gms/maps/model/LatLng) object
 * `GMap.create_marker(**options)` Create a [Marker](https://developers.google.com/maps/documentation/android/reference/com/google/android/gms/maps/model/Marker) object, with all the key=value in options
 
+## Authors
+
+- Mathieu Virbel, [Melting Rocks](http://meltingrocks.com/)
+- Thomas Hansen, [Fresk](http://fresklabs.com)
