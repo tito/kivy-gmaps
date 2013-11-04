@@ -345,6 +345,9 @@ class GMap(Widget):
     # utilities
     #
 
+    def execute(self, func):
+        run_on_ui_thread(func)()
+
     def create_latlng(self, lat, lng):
         return LatLng(lat, lng)
 
