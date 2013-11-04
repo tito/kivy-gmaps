@@ -22,7 +22,7 @@ Here is the settings to add in buildozer::
     
 '''
 
-__all__ = ('GMap', 'GMapException')
+__all__ = ('GMap', 'GMapException', 'run_on_ui_thread')
 
 from kivy.uix.widget import Widget
 from kivy.clock import Clock

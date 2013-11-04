@@ -2,41 +2,57 @@ __version__ = '1.0'
 
 from kivy.app import App
 from kivy.lang import Builder
-from gmaps import GMap
+from kivy.properties import NumericProperty
+from gmaps import GMap, run_on_ui_thread
 
 gmap_kv = '''
-BoxLayout:
-    orientation: 'vertical'
-    spacing: '4dp'
+
+<Toolbar@BoxLayout>:
+    size_hint_y: None
+    height: '48dp'
     padding: '4dp'
-    canvas.before:
+    spacing: '4dp'
+
+    canvas:
         Color:
-            rgba: 1, 0, 0, 0
+            rgba: .2, .2, .2, .6
         Rectangle:
             pos: self.pos
             size: self.size
 
-    RelativeLayout:
-        GMap:
-            id: map_widget
+
+FloatLayout:
+    GMap:
+        id: map_widget
+
+    # top toolbar
+    Toolbar:
+        pos_hint: {'top': 1}
+        Button:
+            text: 'Move to Lille, France'
+            on_release: app.move_to_lille()
 
         Button:
-            text: 'Should avoid input'
-            size_hint: None, None
-            size: 200, 200
+            text: 'Move to Sydney, Autralia'
+            on_release: app.move_to_sydney()
 
-
-    Button:
-        text: 'Hello World'
-        size_hint_y: None
-        height: '40dp'
+    # bottom toolbar
+    Toolbar:
+        Label:
+            text: 'Longitude: {} - Latitude: {}'.format(app.longitude, app.latitude)
 '''
 
 class GMapTestApp(App):
 
+    latitude = NumericProperty()
+    longitude = NumericProperty()
+
     def build(self):
         self.root = Builder.load_string(gmap_kv)
-        self.root.ids.map_widget.bind(on_ready=self.on_map_widget_ready)
+        self.map_widget = self.root.ids.map_widget
+        self.map_widget.bind(
+                on_ready=self.on_map_widget_ready,
+                on_map_click=self.on_map_click)
 
     def on_map_widget_ready(self, map_widget, *args):
         # Implementation of the "Hello Map" example from the android
@@ -46,8 +62,8 @@ class GMapTestApp(App):
         sydney = map_widget.create_latlng(-33.867, 151.206)
 
         #map.setMyLocationEnabled(True)
-        #map.moveCamera(map_widget.camera_update_factory.newLatLngZoom(
-        #    sydney, 13))
+        map.moveCamera(map_widget.camera_update_factory.newLatLngZoom(
+            sydney, 13))
 
         marker = map_widget.create_marker(
                 title='Sydney',
@@ -58,8 +74,24 @@ class GMapTestApp(App):
         # disable zoom button
         map.getUiSettings().setZoomControlsEnabled(False)
 
-    def on_pause(self):
-        return True
+    @run_on_ui_thread
+    def move_to_lille(self):
+        latlng = self.map_widget.create_latlng(50.6294, 3.057)
+        self.map_widget.map.moveCamera(
+            self.map_widget.camera_update_factory.newLatLngZoom(
+                latlng, 13))
+
+    @run_on_ui_thread
+    def move_to_sydney(self):
+        latlng = self.map_widget.create_latlng(-33.867, 151.206)
+        self.map_widget.map.moveCamera(
+            self.map_widget.camera_update_factory.newLatLngZoom(
+                latlng, 13))
+
+    def on_map_click(self, map_widget, latlng):
+        self.latitude = latlng.latitude
+        self.longitude = latlng.longitude
+
 
 if __name__ == '__main__':
     GMapTestApp().run()

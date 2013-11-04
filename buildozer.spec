@@ -175,6 +175,6 @@ com.google.android.providers.gsf.permission.READ_GSERVICES
 com.google.android.providers.gsf.permission.WRITE_GSERVICES
 
 [app:android.meta_data]
-com.google.android.maps.v2.API_KEY = 
+com.google.android.maps.v2.API_KEY = AIzaSyA3go-sOrET1ml8IQuj-0wqjdzu7upuiiA
 surface.transluent = 1
 surface.depth = 16
