@@ -41,8 +41,8 @@ InterceptLinearLayout = autoclass('com.meltingrocks.InterceptLinearLayout')
 MapsInitializer = autoclass('com.google.android.gms.maps.MapsInitializer')
 MapView = autoclass('com.google.android.gms.maps.MapView')
 LatLng = autoclass('com.google.android.gms.maps.model.LatLng')
-MarkerOptions = autoclass('com/google.android.gms.maps.model.MarkerOptions')
-CameraUpdateFactory = autoclass('com/google.android.gms.maps.CameraUpdateFactory')
+MarkerOptions = autoclass('com.google.android.gms.maps.model.MarkerOptions')
+CameraUpdateFactory = autoclass('com.google.android.gms.maps.CameraUpdateFactory')
 
 
 class GMapException(Exception):
@@ -297,6 +297,21 @@ class GMap(Widget):
     @run_on_ui_thread
     def create_view(self, *args):
         MapsInitializer.initialize(self._context)
+
+        # very very weird. The second time the MapView is created, it will be
+        # always on the top. After checking if some "state" was written in the
+        # disk, i find that deleting DATA_ServerControlledParametersManager.data
+        # was correctly put the MapView behind the kivy glsurface.
+        # somebody was having the same issue with unity3d:
+        # http://forum.unity3d.com/threads/195738-Incompatibility-Unity-Google-Map-Fragment-V2-Android-SurfaceView
+        # -- mathieu
+        from os import unlink
+        from os.path import join, dirname, exists
+        fn = join(dirname(__file__),
+                  '..', 'DATA_ServerControlledParametersManager.data')
+        if exists(fn):
+            Logger.debug('{} found, removing it.'.format(fn))
+            unlink(fn)
 
         self._view = view = MapView(self._context)
 
