@@ -75,6 +75,19 @@ def my_func(...):
 map.execute(my_func)
 ```
 
+You can also decorate your function with `android.runnable.run_on_ui_thread`, or `GMap.run_on_ui_thread`:
+
+```python
+from android.runnable import run_on_ui_thread
+
+@run_on_ui_thread
+def set_position(self, lat, lng):
+    pos = self.map_widget.create_latlng(lat, lng)
+    self.map_widget.map.moveCamera(
+        self.map_widget.camera_update_factory.newLatLngZoom(
+        pos, 13))
+```
+
 When the Android Google Maps widget is created, it will fire an event name
 `on_ready`. This is where you can create markers, change the camera, and so on.
 
@@ -102,3 +115,7 @@ The GMap have some methods to create java object easily, such as:
 * `GMap.create_latlng(lat, lng)` - Create a [LatLng](https://developers.google.com/maps/documentation/android/reference/com/google/android/gms/maps/model/LatLng) object
 * `GMap.create_marker(**options)` Create a [Marker](https://developers.google.com/maps/documentation/android/reference/com/google/android/gms/maps/model/Marker) object, with all the key=value in options
 
+## Authors
+
+- Mathieu Virbel, [Melting Rocks](http://meltingrocks.com/)
+- Thomas Hansen, [Fresk](http://fresklabs.com)
