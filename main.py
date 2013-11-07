@@ -1,4 +1,4 @@
-__version__ = '1.0'
+__version__ = '1.3'
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -91,6 +91,9 @@ class GMapTestApp(App):
     def on_map_click(self, map_widget, latlng):
         self.latitude = latlng.latitude
         self.longitude = latlng.longitude
+
+    def on_pause(self):
+        return True
 
 
 if __name__ == '__main__':

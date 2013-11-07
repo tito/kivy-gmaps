@@ -36,6 +36,7 @@ Surface = autoclass('android.view.Surface')
 Button = autoclass('android.widget.Button')
 LayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
 LinearLayout = autoclass('android.widget.LinearLayout')
+FrameLayout = autoclass('android.widget.FrameLayout')
 GooglePlayServicesUtil = autoclass('com.google.android.gms.common.GooglePlayServicesUtil')
 InterceptLinearLayout = autoclass('com.meltingrocks.InterceptLinearLayout')
 MapsInitializer = autoclass('com.google.android.gms.maps.MapsInitializer')
@@ -52,7 +53,7 @@ class GMapException(Exception):
 class TouchListener(PythonJavaClass):
     __javacontext__ = 'app'
     __javainterfaces__ = [
-        'com/meltingrocks/InterceptLinearLayout$OnInterceptTouchListener']
+        'org/renpy/android/SDLSurfaceView$OnInterceptTouchListener']
 
     def __init__(self, listener):
         super(TouchListener, self).__init__()
@@ -143,17 +144,6 @@ class AndroidWidgetHolder(Widget):
         #App.get_running_app().bind(on_resume=self._reorder)
         super(AndroidWidgetHolder, self).__init__(**kwargs)
 
-    '''
-    @run_on_ui_thread
-    def _reorder(self, *args):
-        print 'reorder neened?', args
-        view = PythonActivity.mView
-        parent = cast(LinearLayout, view.getParent())
-        parent.bringChildToFront(view)
-        parent.requestLayout()
-        parent.invalidate()
-    '''
-
     def _get_view_bbox(self):
         x, y = self.to_window(*self.pos)
         w, h = self.size
@@ -161,6 +151,8 @@ class AndroidWidgetHolder(Widget):
         return [int(z) for z in [x, self._wh - y - self.height, self.width, self.height]]
 
     def reposition_view(self):
+        # XXX currently broken
+        return
         x, y, w, h = self._get_view_bbox()
         params = self.view.getLayoutParams()
         if not self.view or not params:
@@ -172,9 +164,8 @@ class AndroidWidgetHolder(Widget):
         self.view.setY(y)
 
     def on_view(self, instance, view):
-        print 'on_view', instance, view
         if self._old_view is not None:
-            print 'removing the oldest'
+            # XXX probably broken
             layout = cast(LinearLayout, self._old_view.getParent())
             layout.removeView(self._old_view)
             self._old_view = None
@@ -182,34 +173,21 @@ class AndroidWidgetHolder(Widget):
         if view is None:
             return
 
-        activity = PythonActivity.mActivity
         x, y, w, h = self._get_view_bbox()
-        print 'add the view to our content view', (w, h, x, y)
 
-        print '--> create interceptlinearlayout'
-        layout = InterceptLinearLayout(activity)
-        print '--> set interceptlinearlayout'
-        layout.setInterceptTouchListener(self._listener)
-        print '--> link'
-        layout.addView(view, LayoutParams(-1, -1))
-        #layout.addView(PythonActivity.mView, LayoutParams(-1, -1))
+        # XXX we assume it's the default layout from main.xml
+        # It could break.
+        parent = cast(LinearLayout, PythonActivity.mView.getParent())
+        parent.addView(view, 0, LayoutParams(w, h))
 
-        view = layout
-        #parent = cast(LinearLayout, PythonActivity.mView.getParent())
-        #parent.addView(view, 0, LayoutParams(w, h))
-        activity.addContentView(view, LayoutParams(w, h))
-        print '--> done'
+        # we need to differenciate if there is interaction with our holder or
+        # not.
+        # XXX must be activated only if the view is displayed on the screen!
+        PythonActivity.mView.setInterceptTouchListener(self._listener)
 
         view.setX(x)
         view.setY(y)
         self._old_view = view
-        self.canvas.ask_update()
-
-        #Clock.schedule_once(self._set, 0)
-
-    def _set(self, *args):
-        self.view.setOnTouchListener(self._on_touch_listener)
-        self.view.setOnGenericMotionListener(self._on_touch_listener)
 
     def on_size(self, instance, size):
         if self.view:
@@ -240,7 +218,7 @@ class AndroidWidgetHolder(Widget):
             widget = self._pick(child, x, y)
             if not widget:
                 continue
-        if self is not widget:
+        if self is widget:
             return True
 
     def _pick(self, widget, x, y):
@@ -297,21 +275,6 @@ class GMap(Widget):
     @run_on_ui_thread
     def create_view(self, *args):
         MapsInitializer.initialize(self._context)
-
-        # very very weird. The second time the MapView is created, it will be
-        # always on the top. After checking if some "state" was written in the
-        # disk, i find that deleting DATA_ServerControlledParametersManager.data
-        # was correctly put the MapView behind the kivy glsurface.
-        # somebody was having the same issue with unity3d:
-        # http://forum.unity3d.com/threads/195738-Incompatibility-Unity-Google-Map-Fragment-V2-Android-SurfaceView
-        # -- mathieu
-        from os import unlink
-        from os.path import join, dirname, exists
-        fn = join(dirname(__file__),
-                  '..', 'DATA_ServerControlledParametersManager.data')
-        if exists(fn):
-            Logger.debug('{} found, removing it.'.format(fn))
-            unlink(fn)
 
         self._view = view = MapView(self._context)
 

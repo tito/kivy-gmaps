@@ -81,11 +81,10 @@ fullscreen = 0
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
 #android.add_src = 
-android.add_src = gmaps/libs/android/java/*
 
 # (str) python-for-android branch to use, if not master, useful to try
 # not yet merged features.
-android.branch = metadata
+#android.branch = metadata
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -176,5 +175,6 @@ com.google.android.providers.gsf.permission.WRITE_GSERVICES
 
 [app:android.meta_data]
 com.google.android.maps.v2.API_KEY = AIzaSyA3go-sOrET1ml8IQuj-0wqjdzu7upuiiA
-surface.transluent = 1
+surface.transparent = 1
 surface.depth = 16
+android.background_color = 0
