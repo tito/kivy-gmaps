@@ -31,18 +31,22 @@ from jnius import autoclass, cast, PythonJavaClass, java_method
 from kivy.properties import ObjectProperty, BooleanProperty
 from kivy.logger import Logger
 
-PythonActivity = autoclass('org.renpy.android.PythonActivity')
-Surface = autoclass('android.view.Surface')
-Button = autoclass('android.widget.Button')
-LayoutParams = autoclass('android.view.ViewGroup$LayoutParams')
-LinearLayout = autoclass('android.widget.LinearLayout')
-FrameLayout = autoclass('android.widget.FrameLayout')
+PythonActivity         = autoclass('org.renpy.android.PythonActivity')
+Surface                = autoclass('android.view.Surface')
+Button                 = autoclass('android.widget.Button')
+LayoutParams           = autoclass('android.view.ViewGroup$LayoutParams')
+LinearLayout           = autoclass('android.widget.LinearLayout')
+FrameLayout            = autoclass('android.widget.FrameLayout')
 GooglePlayServicesUtil = autoclass('com.google.android.gms.common.GooglePlayServicesUtil')
-MapsInitializer = autoclass('com.google.android.gms.maps.MapsInitializer')
-MapView = autoclass('com.google.android.gms.maps.MapView')
-LatLng = autoclass('com.google.android.gms.maps.model.LatLng')
-MarkerOptions = autoclass('com.google.android.gms.maps.model.MarkerOptions')
-CameraUpdateFactory = autoclass('com.google.android.gms.maps.CameraUpdateFactory')
+MapsInitializer        = autoclass('com.google.android.gms.maps.MapsInitializer')
+MapView                = autoclass('com.google.android.gms.maps.MapView')
+LatLng                 = autoclass('com.google.android.gms.maps.model.LatLng')
+MarkerOptions          = autoclass('com.google.android.gms.maps.model.MarkerOptions')
+CameraUpdateFactory    = autoclass('com.google.android.gms.maps.CameraUpdateFactory')
+
+Color                  = autoclass('android.graphics.Color')
+Polyline               = autoclass('com.google.android.gms.maps.model.Polyline')
+PolylineOptions        = autoclass('com.google.android.gms.maps.model.PolylineOptions')
 
 
 class GMapException(Exception):
@@ -75,7 +79,8 @@ class GoogleMapEventListener(PythonJavaClass):
         'com/google/android/gms/maps/GoogleMap$OnMapClickListener',
         'com/google/android/gms/maps/GoogleMap$OnMapLongClickListener',
         'com/google/android/gms/maps/GoogleMap$OnMarkerClickListener',
-        'com/google/android/gms/maps/GoogleMap$OnMyLocationButtonClickListener']
+        'com/google/android/gms/maps/GoogleMap$OnMyLocationButtonClickListener',
+        'com/google/android/gms/maps/GoogleMap$OnMyLocationChangeListener']
 
     def __init__(self, listener):
         super(GoogleMapEventListener, self).__init__()
@@ -120,6 +125,10 @@ class GoogleMapEventListener(PythonJavaClass):
     @java_method('()Z')
     def onMyLocationButtonClick(self):
         return self.listener.dispatch('on_my_location_button_click')
+
+    @java_method('(Landroid/location/Location;)V')
+    def onMyLocationChange(self, location):
+        return self.listener.dispatch('on_my_location_change')
 
 
 class AndroidWidgetHolder(Widget):
@@ -243,6 +252,7 @@ class GMap(Widget):
         'on_marker_drag_end',
         'on_marker_drag_start',
         'on_my_location_button_click',
+        'on_my_location_change',
         
         # kivy/map_widget event, to know when it's ready.
         'on_ready'
@@ -300,6 +310,7 @@ class GMap(Widget):
         gmap.setOnMarkerClickListener(listener)
         gmap.setOnMarkerDragListener(listener)
         gmap.setOnMyLocationButtonClickListener(listener)
+        gmap.setOnMyLocationChangeListener(listener)
 
         # dispatch an event to inform that the gmap is available to use
         self.dispatch('on_ready')
@@ -349,6 +360,14 @@ class GMap(Widget):
             marker = getattr(marker, key)(value)
         return marker
 
+    def create_polyline(self, coords, width = 5, color = Color.RED, geodesic = False):
+        lineOpts = PolylineOptions()
+        lineOpts.add(*coords)
+        lineOpts.width(width)
+        lineOpts.color(color)
+        lineOpts.geodesic(geodesic)
+        return lineOpts
+
 
     #
     # default events
@@ -392,6 +411,10 @@ class GMap(Widget):
 
     def on_my_location_button_click(self):
         Logger.info('Gmap: on_my_location_button_click)')
+        pass
+
+    def on_my_location_change(self):
+        Logger.info('Gmap: on_my_location_change)')
         pass
 
     def on_ready(self):
